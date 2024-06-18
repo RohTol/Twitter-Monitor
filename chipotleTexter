@@ -1,0 +1,64 @@
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from bs4 import BeautifulSoup
+import time
+webdriver_path = r'C:\Users\rtolani\Downloads\edgedriver_win64\msedgedriver.exe'
+
+driver = webdriver.Edge()
+
+
+twitter_url = "https://twitter.com/RohTol"
+username = 'username'
+password = "password"
+
+def login_twitter(username, password):
+    driver.get("https://twitter.com/login")
+    try:
+        username_field = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.NAME, "text"))
+        )
+        username_field.send_keys(username)
+        username_field.send_keys(Keys.RETURN)  # Press Enter after entering username
+        print("username entered! \n")
+
+        password_field = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.NAME, "password"))
+        )
+        password_field.send_keys(password)
+        password_field.send_keys(Keys.RETURN)  # Press Enter after entering password
+
+        # Wait for the login to complete
+        WebDriverWait(driver, 2).until(
+            EC.url_to_be("https://twitter.com/home")
+        )
+        print("Login successful!")
+    except Exception as e:
+        print(f"Error during login: {e}")
+def monitor_twitter(delay_seconds = 5):
+    login_twitter(username, password)
+    print("about to monitor account")
+    driver.get(twitter_url)
+    print("monitoring account!")
+    last_tweet = None
+    while True:
+        time.sleep(10)
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        tweet = soup.find('div', class_= 'css-1dbjc4n')
+        if tweet:
+            tweet_text = tweet.find('div', class_='css-901oao').get_text()
+            tweet_media = tweet.find('img', class_='css-9pa8cd')
+
+            if tweet_text != last_tweet:
+                # Print or process the tweet text and media
+                print(f'New Tweet: {tweet_text}')
+                if tweet_media:
+                    print(f'Media URL: {tweet_media["src"]}')
+
+                last_tweet = tweet_text
+
+
+
+monitor_twitter()
