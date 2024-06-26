@@ -5,7 +5,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 import time
-webdriver_path = r'C:\Users\rtolani\Downloads\edgedriver_win64\msedgedriver.exe'
+from datetime import datetime, timedelta
+webdriver_path = r'C:\Users\rohan\Downloads\edgedriver_win64\msedgedriver.exe'
 
 driver = webdriver.Edge()
 
@@ -37,28 +38,58 @@ def login_twitter(username, password):
         print("Login successful!")
     except Exception as e:
         print(f"Error during login: {e}")
-def monitor_twitter(delay_seconds = 5):
+# def monitor_twitter(delay_seconds = 5):
+#     login_twitter(username, password)
+#     print("about to monitor account")
+#     driver.get(twitter_url)
+#     print("monitoring account!")
+#     last_tweet = None
+#     while True:
+#         time.sleep(10)
+#         soup = BeautifulSoup(driver.page_source, 'html.parser')
+#         tweet = soup.find('div', class_= 'css-1dbjc4n')
+#         if tweet:
+#             tweet_text = tweet.find('div', class_='css-901oao').get_text()
+#             tweet_media = tweet.find('img', class_='css-9pa8cd')
+#
+#             if tweet_text != last_tweet:
+#                 # Print or process the tweet text and media
+#                 print(f'New Tweet: {tweet_text}')
+#                 if tweet_media:
+#                     print(f'Media URL: {tweet_media["src"]}')
+#
+#                 last_tweet = tweet_text
+
+def monitor_twitter(delay_seconds=5, window_seconds=30):
     login_twitter(username, password)
-    print("about to monitor account")
+    print("About to monitor account")
     driver.get(twitter_url)
-    print("monitoring account!")
+    print("Monitoring account!")
     last_tweet = None
     while True:
-        time.sleep(10)
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        tweet = soup.find('div', class_= 'css-1dbjc4n')
-        if tweet:
-            tweet_text = tweet.find('div', class_='css-901oao').get_text()
-            tweet_media = tweet.find('img', class_='css-9pa8cd')
+        driver.refresh()  # Ensure the latest content is loaded
+        time.sleep(delay_seconds)  # Wait for the page to load
+        tweets = WebDriverWait(driver, 10).until(
+            EC.presence_of_all_elements_located((By.XPATH, '//article[@data-testid="tweet"]'))
+        )
+        for tweet in tweets:
+            tweet_text = tweet.text
+            if "Pinned" not in tweet_text:
+                try:
+                    timestamp_text = tweet.find_element(By.XPATH, ".//time").get_attribute('datetime')
+                    tweet_datetime = datetime.fromisoformat(timestamp_text.rstrip('Z'))
+                    current_time = datetime.utcnow()
 
-            if tweet_text != last_tweet:
-                # Print or process the tweet text and media
-                print(f'New Tweet: {tweet_text}')
-                if tweet_media:
-                    print(f'Media URL: {tweet_media["src"]}')
-
-                last_tweet = tweet_text
-
-
+                    if (current_time - tweet_datetime) <= timedelta(seconds=window_seconds):
+                        if tweet_text != last_tweet:
+                            print(f'New Tweet: {tweet_text}')
+                            last_tweet = tweet_text
+                            return  # Exit after processing the first non-pinned and recent enough tweet
+                        break  # If it is the last seen tweet, no need to check further
+                except Exception as e:
+                    print(f"Error processing tweet: {e}")
+                    continue  # In case of an error, skip to the next tweet
+                break  # Stop after checking the first valid (non-pinned) tweet
 
 monitor_twitter()
+
