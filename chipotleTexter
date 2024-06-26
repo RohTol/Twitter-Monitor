@@ -67,8 +67,8 @@ def monitor_twitter(delay_seconds=5, window_seconds=30):
     print("Monitoring account!")
     last_tweet = None
     while True:
-        driver.refresh()  # Ensure the latest content is loaded
-        time.sleep(delay_seconds)  # Wait for the page to load
+        driver.refresh()
+        time.sleep(delay_seconds)
         tweets = WebDriverWait(driver, 10).until(
             EC.presence_of_all_elements_located((By.XPATH, '//article[@data-testid="tweet"]'))
         )
@@ -82,7 +82,19 @@ def monitor_twitter(delay_seconds=5, window_seconds=30):
 
                     if (current_time - tweet_datetime) <= timedelta(seconds=window_seconds):
                         if tweet_text != last_tweet:
+                            # Check for images in the tweet
+                            images = tweet.find_elements(By.XPATH, ".//img[contains(@src, 'twimg')]")
+                            image_urls = [img.get_attribute('src') for img in images if 'twimg' in img.get_attribute('src')]
+
                             print(f'New Tweet: {tweet_text}')
+                            if image_urls:
+                                content_images = [image for image in image_urls if "profile_images" not in image and "emoji" not in image]
+                                if content_images:
+                                    print("Content images found:", content_images)
+                                else:
+                                    print("No content images found, only profile images.")
+
+
                             last_tweet = tweet_text
                             return  # Exit after processing the first non-pinned and recent enough tweet
                         break  # If it is the last seen tweet, no need to check further
@@ -91,5 +103,6 @@ def monitor_twitter(delay_seconds=5, window_seconds=30):
                     continue  # In case of an error, skip to the next tweet
                 break  # Stop after checking the first valid (non-pinned) tweet
 
-monitor_twitter()
 
+
+monitor_twitter()
