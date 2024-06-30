@@ -6,14 +6,18 @@ from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 import time
 from datetime import datetime, timedelta
+import requests
+from google.cloud import vision
+
 webdriver_path = r'C:\Users\rohan\Downloads\edgedriver_win64\msedgedriver.exe'
 
 driver = webdriver.Edge()
 
 
+
 twitter_url = "https://twitter.com/RohTol"
-username = 'username'
-password = "password"
+username = 'hi'
+password = "hi"
 
 def login_twitter(username, password):
     driver.get("https://twitter.com/login")
@@ -105,4 +109,9 @@ def monitor_twitter(delay_seconds=5, window_seconds=30):
 
 
 
+
+
 monitor_twitter()
+
+
+
