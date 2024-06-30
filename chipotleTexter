@@ -17,7 +17,24 @@ driver = webdriver.Edge()
 
 twitter_url = "https://twitter.com/RohTol"
 username = 'hi'
-password = "hi"
+password = "hello"
+
+def detect_text_from_url(image_url):
+    client = vision.ImageAnnotatorClient()
+
+    image = vision.Image()
+    image.source.image_uri = image_url
+
+    response = client.text_detection(image=image)
+    texts = response.text_annotations
+
+    print('Texts:')
+    for text in texts:
+        if text.description.startswith("FREE4FREE"):
+            print('\n"{}"'.format(text.description))
+
+    if response.error.message:
+        raise Exception(f'{response.error.message}')
 
 def login_twitter(username, password):
     driver.get("https://twitter.com/login")
@@ -95,8 +112,12 @@ def monitor_twitter(delay_seconds=5, window_seconds=30):
                                 content_images = [image for image in image_urls if "profile_images" not in image and "emoji" not in image]
                                 if content_images:
                                     print("Content images found:", content_images)
+                                    #handle if there are multiple images
+                                    for link in content_images:
+                                        detect_text_from_url(link)
                                 else:
-                                    print("No content images found, only profile images.")
+                                    print("No content images found, only profile/emoji images.")
+                                    #store the text in a string 
 
 
                             last_tweet = tweet_text
