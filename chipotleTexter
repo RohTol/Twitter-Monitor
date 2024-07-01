@@ -16,8 +16,8 @@ driver = webdriver.Edge()
 
 
 twitter_url = "https://twitter.com/RohTol"
-username = 'asimpdestroyer'
-password = "Serena@519"
+username = 'hello'
+password = "hi"
 code = "hello"
 
 def detect_text_from_url(image_url):
