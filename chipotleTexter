@@ -16,11 +16,12 @@ driver = webdriver.Edge()
 
 
 twitter_url = "https://twitter.com/RohTol"
-username = 'hello'
-password = "hi"
+username = 'hi'
+password = "sup"
 code = "hello"
 
 def detect_text_from_url(image_url):
+    global code
     client = vision.ImageAnnotatorClient()
 
     image = vision.Image()
@@ -29,9 +30,10 @@ def detect_text_from_url(image_url):
     response = client.text_detection(image=image)
     texts = response.text_annotations
 
-    print('Texts:')
+    # print('Texts:')
     for text in texts:
         if text.description.startswith("FREE4FREE"):
+            code = text.description
             print('\n"{}"'.format(text.description))
 
     if response.error.message:
@@ -83,6 +85,7 @@ def login_twitter(username, password):
 #                 last_tweet = tweet_text
 
 def monitor_twitter(delay_seconds=5, window_seconds=30):
+    global code
     login_twitter(username, password)
     print("About to monitor account")
     driver.get(twitter_url)
@@ -118,13 +121,23 @@ def monitor_twitter(delay_seconds=5, window_seconds=30):
                                         detect_text_from_url(link)
                                 else:
                                     print("No content images found, only profile/emoji images.")
+                                    clean_tweet_text = ''.join(char for char in tweet_text if char.isalnum() or char.isspace())
+                                    print(clean_tweet_text)
+                                    words = clean_tweet_text.split()
+                                    print(words)
                                     #store the text in a string
-                                    for word in tweet_text:
-                                        if word.startswith("FREE4FREE"):
-                                            #STARTING HERE
+                                    for word in words:
+                                        if word.startswith("FREE4FREE") or word.startswith("FRE") or word.startswith("FEE"):
+                                            http_index = word.find('http')
+                                            if http_index != -1:
+                                                word = word[:http_index]
+                                            print(word)
+                                            code = word
 
 
                             last_tweet = tweet_text
+                            print("code is ")
+                            print(code)
                             return  # Exit after processing the first non-pinned and recent enough tweet
                         break  # If it is the last seen tweet, no need to check further
                 except Exception as e:
