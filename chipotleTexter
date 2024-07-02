@@ -8,6 +8,7 @@ import time
 from datetime import datetime, timedelta
 import requests
 from google.cloud import vision
+from twilio.rest import Client
 
 webdriver_path = r'C:\Users\rohan\Downloads\edgedriver_win64\msedgedriver.exe'
 
@@ -17,7 +18,7 @@ driver = webdriver.Edge()
 
 twitter_url = "https://twitter.com/RohTol"
 username = 'hi'
-password = "sup"
+password = "password"
 code = "hello"
 
 def detect_text_from_url(image_url):
@@ -83,6 +84,19 @@ def login_twitter(username, password):
 #                     print(f'Media URL: {tweet_media["src"]}')
 #
 #                 last_tweet = tweet_text
+
+def text_chipotle:
+    account_sid = 'account'
+    auth_token = 'token'
+    client = Client(account_sid, auth_token)
+
+    message = client.messages.create(
+        from_='+here',
+        body='Hello from Twilio',
+        to='+18777804236'
+    )
+
+    print(message.sid)
 
 def monitor_twitter(delay_seconds=5, window_seconds=30):
     global code
